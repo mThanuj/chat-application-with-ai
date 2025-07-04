@@ -5,6 +5,7 @@ import {
   login,
   logout,
   register,
+  getMe,
 } from "../controllers/auth.controller";
 import passport from "passport";
 
@@ -32,5 +33,6 @@ router.get(
 );
 router.get("/logout", logout);
 router.post("/register", register);
+router.get("/me", passport.authenticate("jwt", { session: false }), getMe);
 
 export default router;

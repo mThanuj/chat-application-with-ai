@@ -16,7 +16,7 @@ export const login = async (
 ): Promise<AuthReturnType> => {
   try {
     const response = await axiosInstance.post("/auth/login", values);
-    const accessToken = response.data;
+    const { accessToken } = response.data;
 
     localStorage.setItem("accessToken", accessToken);
 

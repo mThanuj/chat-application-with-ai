@@ -3,6 +3,15 @@ import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import { prisma } from "../config/prisma";
 import bcrypt from "bcrypt";
 
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName } = req.body;

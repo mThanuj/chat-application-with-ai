@@ -126,7 +126,7 @@ export default function RegisterForm() {
           <p className="text-center">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href="/auth/login"
               className="text-shadow-accent-foreground font-semibold cursor-pointer hover:underline"
             >
               Login

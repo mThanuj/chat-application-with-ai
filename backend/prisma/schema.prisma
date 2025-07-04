@@ -26,4 +26,20 @@ model User {
   first_name    String
   last_name     String
   avatar_url    String?
+
+  ReceivedMessages Message[] @relation("ReceivedMessages")
+  SentMessages     Message[] @relation("SentMessages")
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  fromId  Int
+  toId    Int
+  message String
+
+  from User @relation("SentMessages", fields: [fromId], references: [id])
+  to   User @relation("ReceivedMessages", fields: [toId], references: [id])
 }
