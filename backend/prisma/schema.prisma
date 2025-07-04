@@ -27,8 +27,9 @@ model User {
   last_name     String
   avatar_url    String?
 
-  ReceivedMessages Message[] @relation("ReceivedMessages")
-  SentMessages     Message[] @relation("SentMessages")
+  ReceivedMessages Message[]       @relation("ReceivedMessages")
+  SentMessages     Message[]       @relation("SentMessages")
+  AIChatSession    AIChatSession[]
 }
 
 model Message {
@@ -36,10 +37,35 @@ model Message {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  fromId  Int
-  toId    Int
+  from_id Int
+  to_id   Int
   message String
 
-  from User @relation("SentMessages", fields: [fromId], references: [id])
-  to   User @relation("ReceivedMessages", fields: [toId], references: [id])
+  from User @relation("SentMessages", fields: [from_id], references: [id])
+  to   User @relation("ReceivedMessages", fields: [to_id], references: [id])
+}
+
+model AIChatSession {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user_id Int
+  active  Boolean @default(true)
+
+  user User @relation(fields: [user_id], references: [id])
+
+  AIChat AIChat[]
+}
+
+model AIChat {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  session_id String
+  prompt     String
+  response   String
+
+  session AIChatSession @relation(fields: [session_id], references: [id])
 }

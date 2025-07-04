@@ -6,7 +6,6 @@ import { Button } from "../ui/button";
 import { Send } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import { Message } from "@/lib/types/Message";
-import { set } from "zod";
 
 interface MessageInputProps {
   socket: any;

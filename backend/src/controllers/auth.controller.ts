@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 import { prisma } from "../config/prisma";
 import bcrypt from "bcrypt";
+import { AuthUser } from "../utils/types/AuthUser";
 
 export const getMe = async (req: Request, res: Response) => {
   try {
@@ -87,6 +88,15 @@ export const logout = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
+    });
+
+    await prisma.aIChatSession.updateMany({
+      where: {
+        user_id: (req.user as AuthUser).id,
+      },
+      data: {
+        active: false,
+      },
     });
 
     res.json({ message: "Logout successful" });

@@ -4,7 +4,6 @@ import { Server as SocketServer } from "socket.io";
 import app from "./app";
 import { env } from "./config/Env";
 import { SOCKET_EVENTS } from "./constants";
-import { sendMessage } from "./controllers/messages.controller";
 
 const PORT = env.PORT;
 

@@ -13,12 +13,12 @@ export const previousMessages = async (req: Request, res: Response) => {
       where: {
         OR: [
           {
-            toId: primaryUserId,
-            fromId: secondaryUserId,
+            to_id: primaryUserId,
+            from_id: secondaryUserId,
           },
           {
-            toId: secondaryUserId,
-            fromId: primaryUserId,
+            to_id: secondaryUserId,
+            from_id: primaryUserId,
           },
         ],
       },
@@ -46,8 +46,8 @@ export const sendMessage = async (req: Request, res: Response) => {
 
     const createdMessage = await prisma.message.create({
       data: {
-        fromId,
-        toId,
+        from_id: fromId,
+        to_id: toId,
         message,
       },
     });

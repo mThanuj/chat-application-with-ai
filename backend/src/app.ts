@@ -31,9 +31,11 @@ app.use(passport.initialize());
 
 import authRouter from "./routes/auth.route";
 import messagesRouter from "./routes/messages.route";
+import aiRouter from "./routes/ai.route";
 
 app.use("/auth", authRouter);
 app.use("/messages", messagesRouter);
+app.use("/ai", aiRouter);
 
 app.use((err: AppError, _req: Request, res: Response, _next: NextFunction) => {
   res.status(err.status || 500).json({
