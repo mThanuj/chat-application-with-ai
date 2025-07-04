@@ -10,6 +10,7 @@ export const envSchema = z
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
     GOOGLE_CALLBACK_URL: z.string(),
+    OLLAMA_MODEL: z.string(),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.FRONTEND) {

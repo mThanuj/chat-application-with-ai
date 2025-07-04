@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AuthUser } from "../utils/types/AuthUser";
 import { prisma } from "../config/prisma";
 import ollama from "ollama";
+import { env } from "../config/Env";
 
 export const getSession = async (req: Request, res: Response) => {
   try {
@@ -37,47 +38,68 @@ export const askAI = async (req: Request, res: Response) => {
       return;
     }
 
-    const messages: { role: string; content: string }[] = [];
     const aiMessages = await prisma.aIChat.findMany({
-      where: {
-        session_id: sessionId,
-      },
-      orderBy: {
-        created_at: "asc",
-      },
-      take: 10,
+      where: { session_id: sessionId },
+      orderBy: { created_at: "asc" },
+      take: 50,
     });
 
-    for (const message of aiMessages) {
-      messages.push({ role: "user", content: message.prompt });
-      messages.push({ role: "assistant", content: message.response });
+    const fullContext = aiMessages
+      .map((m) => `User: ${m.prompt}\nAI: ${m.response}`)
+      .join("\n\n");
+    let windowedContext =
+      fullContext.length > 4000
+        ? fullContext.slice(fullContext.length - 4000)
+        : fullContext;
+
+    if (aiMessages.length > 20) {
+      const summaryResp = await ollama.chat({
+        model: env.OLLAMA_MODEL,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Summarize the following conversation briefly:\n" +
+              windowedContext,
+          },
+        ],
+        options: { num_predict: 80, temperature: 0.2 },
+      });
+      windowedContext = summaryResp.message.content;
     }
 
-    const newPrompt = `Answer in 5 short sentences: ${prompt}`;
-    messages.push({ role: "user", content: newPrompt });
-
-    console.log(messages);
+    const messages: { role: string; content: string }[] = [];
+    if (windowedContext) {
+      messages.push({ role: "system", content: windowedContext });
+    }
+    const userPrompt = `Answer in 5 short, complete sentences: ${prompt}`;
+    messages.push({ role: "user", content: userPrompt });
 
     const response = await ollama.chat({
-      model: "llama3.1",
+      model: env.OLLAMA_MODEL,
       messages,
       options: {
-        num_predict: 50,
-        temperature: 0.7,
+        num_predict: 80,
+        temperature: 0.2,
+        top_p: 0.9,
+        top_k: 40,
+        num_thread: 8,
       },
     });
 
     await prisma.aIChat.create({
       data: {
         session_id: sessionId,
-        prompt: newPrompt,
+        prompt: userPrompt,
         response: response.message.content,
       },
     });
 
-    res.json({ response });
+    console.log(response);
+
+    res.json({ response: response.message.content });
   } catch (error) {
-    console.error(error);
+    console.error("askAI error:", error);
     res.status(500).json({ error: "AI generation failed" });
   }
 };

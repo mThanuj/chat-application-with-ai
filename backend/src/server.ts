@@ -9,6 +9,10 @@ const PORT = env.PORT;
 
 const httpServer = createServer(app);
 
+httpServer.setTimeout(0);
+httpServer.keepAliveTimeout = 0;
+httpServer.headersTimeout = 0;
+
 export const users = new Map();
 const userNames = new Map();
 
