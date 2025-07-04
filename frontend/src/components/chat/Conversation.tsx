@@ -1,30 +1,73 @@
 "use client";
 
+import axiosInstance from "@/lib/axiosInstance";
 import { SOCKET_EVENTS } from "@/lib/constants";
-import React, { useEffect, useState } from "react";
+import { Message } from "@/lib/types/Message";
+import React, { useEffect, useRef } from "react";
 
 interface ConversationProps {
   receiver: number;
   socket: any;
+  userId: number;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
-const Conversation = ({ receiver, socket }: ConversationProps) => {
-  const [messages, setMessages] = useState<string[]>([]);
-
-  useEffect(() => {}, [receiver]);
+const Conversation = ({
+  receiver,
+  socket,
+  userId,
+  messages,
+  setMessages,
+}: ConversationProps) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!socket) {
-      return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const response = await axiosInstance.get(
+        `/messages/previous-messages/${receiver}`
+      );
+
+      setMessages(response.data.messages);
+    };
+
+    if (receiver !== -1) {
+      fetchMessages();
     }
-    socket.on(SOCKET_EVENTS.MESSAGE.RECEIVE, (data: string) => {
-      console.log(data);
-    });
+  }, [receiver]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleReceive = (message: Message) => {
+      setMessages((prev) => [...prev, message]);
+    };
+
+    socket.on(SOCKET_EVENTS.MESSAGE.RECEIVE, handleReceive);
   }, [socket]);
 
   return (
-    <div>
-      <div>Conversation</div>
+    <div className="flex flex-col gap-2 p-4 max-h-[70vh] overflow-y-auto">
+      {messages.map((msg) => (
+        <div
+          key={msg.id}
+          className={`max-w-[70%] p-3 rounded-lg text-sm ${
+            msg.fromId === userId
+              ? "bg-blue-600 text-white self-end"
+              : "bg-gray-200 text-black self-start"
+          }`}
+        >
+          {msg.message}
+          <div className="text-[10px] text-right opacity-60 mt-1">
+            {new Date(msg.created_at).toLocaleTimeString()}
+          </div>
+        </div>
+      ))}
+      <div ref={messagesEndRef} />
     </div>
   );
 };

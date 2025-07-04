@@ -8,9 +8,10 @@ import { Button } from "../ui/button";
 interface UsersProps {
   setReceiver: React.Dispatch<React.SetStateAction<number>>;
   socket: Socket | null;
+  userId: number;
 }
 
-const Users = ({ setReceiver, socket }: UsersProps) => {
+const Users = ({ setReceiver, socket, userId }: UsersProps) => {
   const [onlineUsers, setOnlineUsers] = useState<[number, string][]>([]);
 
   useEffect(() => {
@@ -33,19 +34,22 @@ const Users = ({ setReceiver, socket }: UsersProps) => {
     <div>
       <h2 className="text-xl font-bold mb-4">Online Users</h2>
       <div className="flex flex-col space-y-2">
-        {onlineUsers.map((item) => (
-          <Button
-            key={item[0]}
-            onClick={() => setReceiver(item[0])}
-            className="w-full justify-start"
-            variant="outline"
-            style={{
-              color: COLORS.GREEN,
-            }}
-          >
-            {item[1]}
-          </Button>
-        ))}
+        {onlineUsers.map(
+          (item) =>
+            item[0] !== userId && (
+              <Button
+                key={item[0]}
+                onClick={() => setReceiver(item[0])}
+                className="w-full justify-start"
+                variant="outline"
+                style={{
+                  color: COLORS.GREEN,
+                }}
+              >
+                {item[1]}
+              </Button>
+            )
+        )}
       </div>
     </div>
   );

@@ -13,7 +13,6 @@ export const envSchema = z
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.FRONTEND) {
-      console.log(env);
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["FRONTEND"],

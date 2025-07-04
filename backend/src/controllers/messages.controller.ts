@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { AuthUser } from "../utils/types/AuthUser";
 import { prisma } from "../config/prisma";
+import { users } from "../server";
+import { SOCKET_EVENTS } from "../constants";
 
 export const previousMessages = async (req: Request, res: Response) => {
   try {
@@ -37,15 +39,21 @@ export const sendMessage = async (req: Request, res: Response) => {
     const toId = Number(req.params.id);
     const { message } = req.body;
 
-    await prisma.message.create({
+    if (!toId || !message) {
+      res.status(400).json({ error: "Missing recipient or message" });
+      return;
+    }
+
+    const createdMessage = await prisma.message.create({
       data: {
         fromId,
         toId,
         message,
       },
     });
+    users.get(toId)?.emit(SOCKET_EVENTS.MESSAGE.RECEIVE, createdMessage);
 
-    res.json({ message: "Message sent successfully" });
+    res.json({ createdMessage });
   } catch (error) {
     res.status(500).json({ error });
   }
