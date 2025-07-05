@@ -31,7 +31,7 @@ router.get(
   }),
   googleLogin
 );
-router.get("/logout", logout);
+router.get("/logout", passport.authenticate("jwt", { session: false }), logout);
 router.post("/register", register);
 router.get("/me", passport.authenticate("jwt", { session: false }), getMe);
 

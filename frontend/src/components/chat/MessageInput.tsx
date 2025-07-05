@@ -11,25 +11,71 @@ interface MessageInputProps {
   socket: any;
   receiver: number;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  sessionId: string | null;
+  userId: number;
 }
 
-const MessageInput = ({ receiver, setMessages }: MessageInputProps) => {
+const MessageInput = ({
+  receiver,
+  setMessages,
+  sessionId,
+  userId,
+}: MessageInputProps) => {
   const [message, setMessage] = useState("");
 
   const sendMessage = async () => {
-    if (!receiver) {
+    if (!receiver || message.trim() === "") return;
+
+    if (receiver === -1) {
+      setMessage("");
+
+      const userMessage: Message = {
+        id: Date.now(),
+        from_id: userId,
+        to_id: receiver,
+        message,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      try {
+        const response = await axiosInstance.post("/ai/ask-ai", {
+          sessionId,
+          prompt: message,
+        });
+
+        const aiMessage: Message = {
+          id: Date.now() + 1,
+          from_id: -1,
+          to_id: 0,
+          message: response.data.response,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        setMessages((prev) => [...prev, aiMessage]);
+      } catch (error) {
+        console.error("AI error:", error);
+      }
+
       return;
     }
 
-    const response = await axiosInstance.post(
-      "/messages/send-message/" + receiver,
-      { message }
-    );
+    try {
+      const response = await axiosInstance.post(
+        `/messages/send-message/${receiver}`,
+        { message }
+      );
 
-    if (response.status === 200) {
-      setMessages((prev) => [...prev, response.data.createdMessage]);
-      setMessage("");
+      if (response.status === 200) {
+        setMessages((prev) => [...prev, response.data.createdMessage]);
+      }
+    } catch (error) {
+      console.error("Message sending error:", error);
     }
+
+    setMessage("");
   };
 
   return (

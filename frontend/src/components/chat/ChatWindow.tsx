@@ -13,14 +13,18 @@ interface ChatWindowProps {
 }
 
 const ChatWindow = ({ socket }: ChatWindowProps) => {
-  const [receiver, setReceiver] = useState<number>(-1);
+  const [receiver, setReceiver] = useState<number>(0);
   const [userId, setUserId] = useState<number>(-1);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await axiosInstance.get("/auth/me");
+      let response = await axiosInstance.get("/auth/me");
       setUserId(response.data.id);
+
+      response = await axiosInstance.get("/ai/get-session");
+      setSessionId(response.data.sessionId);
     };
 
     fetchUser();
@@ -34,7 +38,12 @@ const ChatWindow = ({ socket }: ChatWindowProps) => {
       }}
     >
       <div className="w-1/4 border-r border-neutral-800 p-4 overflow-y-auto">
-        <Users setReceiver={setReceiver} socket={socket} userId={userId} />
+        <Users
+          setReceiver={setReceiver}
+          socket={socket}
+          userId={userId}
+          receiver={receiver}
+        />
       </div>
       <div className="w-3/4 flex flex-col justify-between p-4">
         <div className="flex-1 overflow-y-auto mb-4">
@@ -44,6 +53,7 @@ const ChatWindow = ({ socket }: ChatWindowProps) => {
             userId={userId}
             messages={messages}
             setMessages={setMessages}
+            sessionId={sessionId}
           />
         </div>
         <div className="pt-4 border-t border-neutral-800">
@@ -51,6 +61,8 @@ const ChatWindow = ({ socket }: ChatWindowProps) => {
             socket={socket}
             receiver={receiver}
             setMessages={setMessages}
+            sessionId={sessionId}
+            userId={userId}
           />
         </div>
       </div>

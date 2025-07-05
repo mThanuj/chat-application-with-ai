@@ -2,7 +2,7 @@
 
 import axiosInstance from "@/lib/axiosInstance";
 import { SOCKET_EVENTS } from "@/lib/constants";
-import { Message } from "@/lib/types/Message";
+import { AIMessage, Message } from "@/lib/types/Message";
 import React, { useEffect, useRef } from "react";
 
 interface ConversationProps {
@@ -10,6 +10,7 @@ interface ConversationProps {
   socket: any;
   userId: number;
   messages: Message[];
+  sessionId: string | null;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
@@ -18,6 +19,7 @@ const Conversation = ({
   socket,
   userId,
   messages,
+  sessionId,
   setMessages,
 }: ConversationProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,38 @@ const Conversation = ({
 
   useEffect(() => {
     const fetchMessages = async () => {
+      if (receiver === -1) {
+        const response = await axiosInstance.get(
+          `/ai/get-previous-messages/${sessionId}`
+        );
+        const currentMessages: AIMessage[] = response.data.messages;
+        const modifiedMessages: Message[] = [];
+
+        for (const message of currentMessages) {
+          modifiedMessages.push({
+            id: `${message.id}-user`,
+            created_at: message.created_at,
+            updated_at: message.updated_at,
+            from_id: userId,
+            to_id: -1,
+            message: message.prompt,
+          });
+
+          modifiedMessages.push({
+            id: `${message.id}-ai`,
+            created_at: message.created_at,
+            updated_at: message.updated_at,
+            from_id: -1,
+            to_id: userId,
+            message: message.response,
+          });
+        }
+
+        setMessages(modifiedMessages);
+
+        return;
+      }
+
       const response = await axiosInstance.get(
         `/messages/previous-messages/${receiver}`
       );
@@ -35,7 +69,7 @@ const Conversation = ({
       setMessages(response.data.messages);
     };
 
-    if (receiver !== -1) {
+    if (receiver !== 0) {
       fetchMessages();
     }
   }, [receiver]);
@@ -56,7 +90,7 @@ const Conversation = ({
         <div
           key={msg.id}
           className={`max-w-[70%] p-3 rounded-lg text-sm ${
-            msg.fromId === userId
+            msg.from_id === userId
               ? "bg-blue-600 text-white self-end"
               : "bg-gray-200 text-black self-start"
           }`}

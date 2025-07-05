@@ -32,4 +32,5 @@ export const COLORS = {
   GREEN: "#29d480",
   PURPLE: "#b82dff",
   BROWN: "#a56361",
+  WHITE: "#ffffff",
 };
