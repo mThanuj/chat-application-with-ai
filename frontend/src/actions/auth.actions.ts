@@ -38,7 +38,6 @@ export const register = async (
 ): Promise<AuthReturnType> => {
   try {
     const response = await axiosInstance.post("/auth/register", values);
-    console.log(response);
 
     return {
       success: true,

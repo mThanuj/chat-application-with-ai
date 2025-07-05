@@ -40,7 +40,6 @@ io.use((socket, next) => {
     socket.data.user = payload;
     next();
   } catch (error) {
-    console.log(error);
     return next(new Error("Invalid token"));
   }
 });
